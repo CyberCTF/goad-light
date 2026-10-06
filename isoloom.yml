@@ -8,30 +8,34 @@ name: goad-light
 networks:
   lab: { cidr: 192.168.56.0/24 }
 
+# Every machine is a Windows Server 2019 box that only sets up WinRM itself; GOAD's Ansible does
+# the rest from the controller. Said once here; a machine's own value wins.
+common:
+  resources: { cpus: 2, memory_mb: 3000 }
+  vm:
+    os: windows-server-2019
+    provision: [vagrant/ConfigureRemotingForAnsible.ps1]
+
+groups:
+  domain-controllers:
+    members: [dc01, dc02]
+
 machines:
   dc01:   # kingslanding: sevenkingdoms.local
     networks: { lab: 10 }
     services: [{ port: 53, name: dns }, { port: 88, name: kerberos }, { port: 389, name: ldap }, { port: 445, name: smb }]
-    resources: { cpus: 2, memory_mb: 3000 }
-    vm:
-      os: windows-server-2019
-      provision: [vagrant/ConfigureRemotingForAnsible.ps1]
+    vm: {}
 
   dc02:   # winterfell: north.sevenkingdoms.local
     networks: { lab: 11 }
     services: [{ port: 53, name: dns }, { port: 88, name: kerberos }, { port: 389, name: ldap }, { port: 445, name: smb }]
-    resources: { cpus: 2, memory_mb: 3000 }
-    vm:
-      os: windows-server-2019
-      provision: [vagrant/ConfigureRemotingForAnsible.ps1]
+    vm: {}
 
   srv02:  # castelblack: IIS and MSSQL in the north
     networks: { lab: 22 }
     services: [{ port: 80, name: iis, http: true }, { port: 1433, name: mssql }, { port: 445, name: smb }]
     resources: { cpus: 2, memory_mb: 6000 }
-    vm:
-      os: windows-server-2019
-      provision: [vagrant/ConfigureRemotingForAnsible.ps1]
+    vm: {}
 
 provision:
   - ansible: ansible/main.yml
@@ -40,3 +44,8 @@ provision:
       - ad/GOAD-Light/providers/isoloom/inventory
       - globalsettings.ini
     requirements: ansible/requirements_311.yml
+
+message: |
+  GOAD-Light is up. kingslanding (sevenkingdoms.local) at {{ machines.dc01.addresses.lab }},
+  winterfell (north.sevenkingdoms.local) at {{ machines.dc02.addresses.lab }}, castelblack
+  (IIS, MSSQL) at {{ machines.srv02.addresses.lab }}. Start from the north.
