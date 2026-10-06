@@ -1,0 +1,16 @@
+{
+  "title": "GOAD-Light",
+  "description": "A trimmed Game of Active Directory: two domains in one forest (sevenkingdoms.local and its north child) across three Windows servers, with GOAD's misconfigurations to practise AD attack paths.",
+  "question": "Compromise the forest and reach Domain Admin.",
+  "category": "NETWORK",
+  "difficulty": 2,
+  "evidence_kind": "SECRET",
+  "providers": [
+    "virtualbox",
+    "vmware_desktop",
+    "parallels",
+    "vmware_esxi",
+    "aws",
+    "azure"
+  ]
+}
