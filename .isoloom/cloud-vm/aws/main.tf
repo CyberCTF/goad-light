@@ -6,6 +6,7 @@
 
 terraform {
   required_version = ">= 1.6"
+  backend "local" {}
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -506,8 +507,8 @@ resource "terraform_data" "isoloom_controller" {
       "sudo mkdir -p /etc/isoloom && sudo install -m 0600 /tmp/isoloom-controller-key /etc/isoloom/id_ed25519 && rm -f /tmp/isoloom-controller-key",
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-venv curl netcat-openbsd >/dev/null",
       "[ -x /opt/ansible/bin/ansible-playbook ] || { sudo python3 -m venv /opt/ansible && sudo /opt/ansible/bin/pip install -q 'ansible-core>=2.15,<2.17' pywinrm; }",
-      "printf '%s' '[linux]\n\n[windows]\ndc01 ansible_host=192.168.56.10\ndc02 ansible_host=192.168.56.11\nsrv02 ansible_host=192.168.56.22\n\n[linux:vars]\nansible_ssh_private_key_file=/etc/isoloom/id_ed25519\nansible_become=true\n\n[windows:vars]\nansible_user=isoloom\nansible_password=${random_password.windows.result}\nansible_connection=winrm\nansible_port=5985\nansible_winrm_scheme=http\nansible_winrm_transport=basic\nansible_winrm_server_cert_validation=ignore\nansible_winrm_operation_timeout_sec=400\nansible_winrm_read_timeout_sec=500\n' | sudo tee /etc/isoloom/inventory.ini >/dev/null",
-      "sudo sh -c 'set -e\nexport PATH=/opt/ansible/bin:$PATH ANSIBLE_HOST_KEY_CHECKING=False\ncd /opt/isoloom/ansible\nansible-galaxy install -r /opt/isoloom/ansible/requirements_311.yml\nansible-playbook -i /etc/isoloom/inventory.ini -i /opt/isoloom/ad/GOAD-Light/data/inventory -i /opt/isoloom/ad/GOAD-Light/providers/isoloom/inventory -i /opt/isoloom/globalsettings.ini main.yml\n'",
+      "printf '%s' '[linux]\n\n[windows]\ndc01 ansible_host=192.168.56.10\ndc02 ansible_host=192.168.56.11\nsrv02 ansible_host=192.168.56.22\n\n[linux:vars]\nansible_ssh_private_key_file=/etc/isoloom/id_ed25519\nansible_become=true\n\n[windows:vars]\nansible_user=isoloom\nansible_password=${random_password.windows.result}\nansible_connection=winrm\nansible_port=5985\nansible_winrm_scheme=http\nansible_winrm_transport=basic\nansible_winrm_server_cert_validation=ignore\nansible_winrm_operation_timeout_sec=400\nansible_winrm_read_timeout_sec=500\n\n[domain-controllers]\ndc01\ndc02\n' | sudo tee /etc/isoloom/inventory.ini >/dev/null",
+      "sudo sh -c 'set -e\nmkdir -p /tmp/isoloom-facts\nexport PATH=/opt/ansible/bin:$PATH ANSIBLE_HOST_KEY_CHECKING=False ANSIBLE_GATHERING=smart ANSIBLE_FORKS=20 ANSIBLE_PIPELINING=True ANSIBLE_CACHE_PLUGIN=jsonfile ANSIBLE_CACHE_PLUGIN_CONNECTION=/tmp/isoloom-facts ANSIBLE_CACHE_PLUGIN_TIMEOUT=7200\ncd /opt/isoloom/ansible\nansible-galaxy install -r /opt/isoloom/ansible/requirements_311.yml\nansible-playbook -i /etc/isoloom/inventory.ini -i /opt/isoloom/ad/GOAD-Light/data/inventory -i /opt/isoloom/ad/GOAD-Light/providers/isoloom/inventory -i /opt/isoloom/globalsettings.ini main.yml\n'",
       "sudo mkdir -p /var/lib/isoloom && echo ready | sudo tee /var/lib/isoloom/ready >/dev/null"
     ]
   }
